@@ -144,6 +144,20 @@
                                                 </None>
                                             </UnavailabilityFormula>
                                         </BasicEvent>
+                                        <BasicEvent>
+                                            <Name>DistributionalShiftDetected</Name>
+                                            <UnavailabilityFormula>
+                                                <None>
+                                                </None>
+                                            </UnavailabilityFormula>
+                                        </BasicEvent>
+                                        <BasicEvent>
+                                            <Name>LowModelConfidence</Name>
+                                            <UnavailabilityFormula>
+                                                <None>
+                                                </None>
+                                            </UnavailabilityFormula>
+                                        </BasicEvent>
                                     </BasicEvents>
                                     <PotentialCCFs>
                                     </PotentialCCFs>
@@ -155,7 +169,7 @@
                                             <Causes>
                                                 <Cause>
                                                     <Probability></Probability>
-                                                    <FailureLogic>Omission-in1 + DSSRuntimeError + Misconfiguration</FailureLogic>
+                                                    <FailureLogic>Omission-in1 + DSSRuntimeError + Misconfiguration + MLInferenceFail</FailureLogic>
                                                 </Cause>
                                             </Causes>
                                         </OutputDeviation>
