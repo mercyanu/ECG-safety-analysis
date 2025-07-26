@@ -1,0 +1,338 @@
+MODULE WearableUnit
+
+VAR 
+
+Out: boolean;
+O-Out: boolean;
+C-Out: boolean; 
+failure: boolean;
+sensorStuck: boolean; 
+
+ASSIGN
+init (failure) := FALSE; 
+init (sensorStuck) := FALSE; 
+
+O-Out := failure; 
+Out:= !O-Out;
+C-Out := sensorStuck; 
+
+next(failure):=
+case
+failure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+---mode: on, off, normal, fail; 
+
+-------------------------------
+
+MODULE PatientMobile (O-In1, O-In2, C-In2 ) 
+
+VAR 
+failure: boolean;
+DSSfailure : boolean; 
+Out1: boolean; 
+Out2: boolean;
+Out3: boolean; 
+O-Out1: boolean;
+O-Out2: boolean;
+O-Out3: boolean;
+
+C-Out2: boolean; 
+
+ASSIGN 
+init (failure) := FALSE; 
+init (DSSfailure) := FALSE; 
+O-Out1 := failure | O-In1; 
+Out1:= !O-Out1;
+O-Out2 := failure | DSSfailure | O-In2; 
+Out2:= !O-Out2;
+O-Out3 := failure | O-In2; 
+Out3:= !O-Out3;
+C-Out2 := C-In2 |DSSfailure; 
+
+
+next(failure):=
+case
+failure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+
+next(DSSfailure):=
+case
+DSSfailure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+
+-------------------------------
+
+
+MODULE PatientPC (O-In1, C-In1, O-In2) 
+
+VAR 
+failure: boolean;
+DSSfailure : boolean; 
+alarmFailure: boolean;
+Out1: boolean; 
+Out2: boolean;
+Out3: boolean; 
+Out4: boolean;
+O-Out1: boolean;
+O-Out2: boolean;
+O-Out3: boolean;
+O-Out4: boolean;
+
+C-Out1: boolean;
+C-Out2: boolean;
+C-Out3: boolean; 
+
+
+
+ASSIGN 
+init (failure) := FALSE; 
+init (DSSfailure) := FALSE; 
+O-Out1 := failure | O-In1; 
+Out1:= !O-Out1;
+O-Out2 := failure | DSSfailure | O-In1; 
+Out2:= !O-Out2;
+O-Out3 := failure | O-In1 | alarmFailure; 
+Out3:= !O-Out3;
+O-Out4 := failure | O-In2;
+
+C-Out1 := C-In1; 
+C-Out2 := DSSfailure | C-In1; 
+C-Out3 := DSSfailure | C-In1; 
+
+
+
+next(failure):=
+case
+failure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+next(DSSfailure):=
+case
+DSSfailure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+next(alarmFailure):=
+case
+alarmFailure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+-------------------------------
+MODULE PatientRouter (O-In1, O-In2, O-In3) 
+
+VAR 
+failure: boolean;
+Out1: boolean; 
+Out2: boolean;
+O-Out1: boolean;
+O-Out2: boolean;
+
+
+ASSIGN 
+init (failure) := FALSE; 
+O-Out1 := failure |O-In3; 
+Out1:= !O-Out1;
+O-Out2 := failure | (O-In1 & O-In2)  ;
+Out2 := !O-Out2;
+
+next(failure):=
+case
+failure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+-------------------------------
+
+MODULE PhysicianRouter (O-In1, O-In2) 
+VAR 
+failure: boolean;
+Out1: boolean; 
+Out2: boolean;
+O-Out1: boolean;
+O-Out2: boolean;
+
+ASSIGN 
+init (failure) := FALSE; 
+O-Out1 := failure |O-In1; 
+Out1:= !O-Out1;
+O-Out2 := failure | O-In2 ;
+Out2 := !O-Out2;
+
+next(failure):=
+case
+failure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+
+
+-------------------------------
+
+MODULE PhysicianMobile (O-In1, O-In2) 
+VAR 
+failure: boolean;
+Out1: boolean; 
+Out2: boolean;
+O-Out1: boolean;
+O-Out2: boolean;
+
+ASSIGN 
+init (failure) := FALSE; 
+O-Out1 := failure |O-In1; 
+Out1:= !O-Out1;
+O-Out2 := failure ;
+Out2 := !O-Out2;
+
+next(failure):=
+case
+failure = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+
+-------------------------------
+
+MODULE ODPhysicianConsulation (O-In1) 
+
+VAR 
+Out1: boolean; 
+Out2: boolean;
+O-Out1: boolean;
+O-Out2: boolean;
+PhysicianUnavailable : boolean;
+
+ASSIGN
+init (PhysicianUnavailable) := FALSE;
+O-Out1 := O-In1; 
+Out1 := !O-Out1;
+O-Out2 := PhysicianUnavailable;
+Out2 := !O-Out2;
+
+next(PhysicianUnavailable):=
+case
+PhysicianUnavailable = FALSE: {TRUE, FALSE}; 
+TRUE: TRUE;
+esac;
+
+
+-------------------------------
+MODULE main 
+
+VAR
+
+ODPatientConsultation : boolean;
+
+O-RiskAlert : boolean;
+C-RiskAlert : boolean; 
+O-PCRiskAlert: boolean;
+C-PCRiskAlert: boolean;
+O-Alarms: boolean;
+C-Alarms: boolean;
+P: 0..180;
+SymS: boolean; 
+SystemRiskAlert : boolean; 
+
+PCODPatientConsultation : boolean; 
+--ODPhysicianCOnsultation: boolean; 
+
+WU : WearableUnit;
+PM : PatientMobile(PtRouter.O-Out1, WU.O-Out, WU.C-Out);
+PPC : PatientPC(WU.O-Out, WU.C-Out, PtRouter.O-Out1); 
+PtRouter: PatientRouter(PM.O-Out3, PPC.O-Out1, PcRouter.O-Out2);
+PcRouter: PhysicianRouter(PtRouter.O-Out2, PcMobile.O-Out2); 
+PcMobile: PhysicianMobile(PcRouter.O-Out1, ODPC.O-Out2); 
+ODPc :  ODPhysicianConsulation (PcMobile.O-Out1); 
+PhyODC : boolean; 
+
+
+mode: {normal, degraded, fail}; 
+falsePositive: boolean;
+falseNegative: boolean; 
+
+patientCon : {Normal, LowRisk, MediumRisk, HighRisk};
+alertService: {Off, RiskAlert, Emergency}; 
+
+ASSIGN
+
+
+O-RiskAlert := PM.O-Out2;
+C-RiskAlert := PM.C-Out2;  
+SystemRiskAlert := !O-RiskAlert & !O-PCRiskAlert ; 
+
+
+O-PCRiskAlert:= PPC.O-Out2;
+C-PCRiskAlert:= PPC.C-Out2; 
+
+O-Alarms:= PPC.O-Out3; 
+C-Alarms := PPC.C-Out3; 
+
+
+ODPatientConsultation := PM.Out1;
+PCODPatientConsultation := PPC.Out4; 
+PhyODC := ODPc.Out1; 
+
+falsePositive := C-Alarms | C-RiskAlert | C-PCRiskAlert;
+falseNegative := (O-RiskAlert | O-PCRiskAlert);
+
+
+init(mode) := normal; 
+next(mode):=
+case
+mode = normal & falsePositive=TRUE & (ODPatientConsultation = FALSE | PCODPatientConsultation = FALSE)  : degraded; 
+mode = degraded & falseNegative = TRUE : fail;
+mode = normal & falseNegative = TRUE : fail; 
+TRUE: mode; 
+esac; 
+
+init(SymS) := FALSE; 
+next(SymS) := 
+case
+SymS= FALSE : {TRUE,FALSE};
+TRUE: TRUE; 
+esac; 
+
+init(patientCon) := Normal; 
+next(patientCon):=
+case
+SymS=TRUE : HighRisk; 
+P < 120 : Normal; 
+patientCon = Normal & (P >= 120) : LowRisk;
+patientCon = LowRisk & (P>=140)  : MediumRisk;
+TRUE: patientCon; 
+esac;
+
+init(alertService):=Off; 
+next(alertService):=
+case
+alertService = Off & patientCon = LowRisk & !(O-RiskAlert & O-PCRiskAlert) : RiskAlert; --udah refined spec 
+patientCon = HighRisk : Emergency; 
+TRUE: alertService;
+esac; 
+
+
+------------------------------
+
+
+SPEC AG((WU.Out & !PM.failure & !PM.DSSfailure) -> !O-RiskAlert); 
+
+SPEC AG((mode = normal & falseNegative = FALSE)-> AX !(mode = fail)); 
+
+SPEC AG((patientCon = LowRisk)->alertService= RiskAlert);
+
+SPEC AG((patientCon = LowRisk) & !(O-RiskAlert & O-PCRiskAlert) ->AF(alertService= RiskAlert));
+
+SPEC AG((SymS = TRUE) -> AX(patientCon = HighRisk)); 
+
+SPEC AG((SymS = TRUE) -> AF (alertService = Emergency));  
+
+
+
+
